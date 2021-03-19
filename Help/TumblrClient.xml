@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <assembly>
+    <name>TumblrClient</name>
+  </assembly>
+  <members>
+    <member name="M:Tumblr.Client.TumblrClient.#ctor(HttpClient,System.String,System.String,ILogger)">
+      <summary>Initializes a new instance of the <see cref="T:Tumblr.Client.TumblrClient" /> class.</summary>
+      <param name="client">The HTTPClient object</param>
+      <param name="key">OAuth 1.0a Consumer Key.</param>
+      <param name="secret">OAuth 1.0a Consumer Secret.</param>
+      <param name="logger">Logger.</param>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.#ctor(HttpClient,System.String,System.String)">
+      <summary>Initializes a new instance of the <see cref="T:Tumblr.Client.TumblrClient" /> class.</summary>
+      <param name="client">The HTTPClient object</param>
+      <param name="key">OAuth 1.0a Consumer Key.</param>
+      <param name="secret">OAuth 1.0a Consumer Secret.</param>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.GetPost(System.String,System.Int64,System.Boolean)">
+      <summary>Gets a single post.</summary>
+      <param name="targetBlog">Blog Id.</param>
+      <param name="id">Post identifier.</param>
+      <param name="requiresUserAuth">if set to <c>true</c> [requires user authentication].</param>
+      <returns>JToken.</returns>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.CreatePost(System.String,JToken)">
+      <summary>Create a new Tumblr post.</summary>
+      <param name="targetBlog">The target blog.</param>
+      <param name="post">The post contents</param>
+      <returns>Id of the newly created blog post.</returns>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.UpdatePost(System.String,System.Int64,JToken)">
+      <summary>Update a Tumblr post.</summary>
+      <param name="targetBlog">The target blog.</param>
+      <param name="id">The Id of the post to update.</param>
+      <param name="post">The post contents</param>
+      <returns>Id of the updated blog post.</returns>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.DeletePost(System.String,System.Int64)">
+      <summary>Delete a Tumblr post.</summary>
+      <param name="targetBlog">The target blog.</param>
+      <param name="id">The Id of the post to delete.</param>
+      <returns>
+        <c>true</c> if the post was deleted, <c>false</c> otherwise.</returns>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.GetDrafts(System.String)">
+      <summary>Gets draft posts from the target blog.</summary>
+      <param name="targetBlog">Blog Id.</param>
+      <returns>JArray.</returns>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.GetQueue(System.String)">
+      <summary>Gets the queued posts from the target blog.</summary>
+      <param name="targetBlog">Blog Id.</param>
+      <returns>JArray.</returns>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.GetSubmissions(System.String)">
+      <summary>Gets the Submissions from the target blog.</summary>
+      <param name="targetBlog">Blog Id.</param>
+      <returns>JArray.</returns>
+    </member>
+    <member name="M:Tumblr.Client.TumblrClient.GetPosts(System.String,System.Boolean,System.Int32)">
+      <summary>Gets the public posts from the target blog. </summary>
+      <param name="targetBlog">Blog Id.</param>
+      <param name="requiresUserAuth">if set to <c>true</c> [requires user authentication].</param>
+      <param name="limit">The limit.</param>
+      <returns>JArray.</returns>
+    </member>
+    <member name="M:Tumblr.Client.TumblrAuth.#ctor(HttpClient,System.String,System.String,ILogger)">
+      <summary>Initializes a new instance of the <see cref="T:Tumblr.Client.TumblrAuth" /> class.</summary>
+      <param name="client">The client.</param>
+      <param name="key">The key.</param>
+      <param name="secret">The secret.</param>
+    </member>
+    <member name="M:Tumblr.Client.TumblrAuth.CreateOauthHeader(HttpRequestMessage)">
+      <summary>Creates a OAuth Authorization header</summary>
+      <param name="requestMessage">
+      </param>
+    </member>
+  </members>
+</doc>
