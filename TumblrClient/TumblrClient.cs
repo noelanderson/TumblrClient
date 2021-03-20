@@ -50,17 +50,8 @@ namespace Tumblr.Client
         /// <returns>JToken.</returns>
         public async Task<JToken> GetPost(string targetBlog, long id, bool requiresUserAuth)
         {
-            bool authComplete = true;
-            if (requiresUserAuth && !_IsAuthenticatedAsUser)
-            {
-                if (authComplete = await _auth.AuthenticateUser())
-                {
-                    _IsAuthenticatedAsUser = true;
-                }
-            }
-
             JToken post = null;
-            if (authComplete)
+            if (await AuthenticationComplete(requiresUserAuth))
             {
                 string apiKey = requiresUserAuth ? string.Empty : $"?api_key={_auth.ApiKey}";
 
@@ -94,17 +85,8 @@ namespace Tumblr.Client
         /// <returns>Id of the newly created blog post.</returns>
         public async Task<long> CreatePost(string targetBlog, JToken post)
         {
-            bool authComplete = true;
             long id = 0;
-            if (!_IsAuthenticatedAsUser)
-            {
-                if (authComplete = await _auth.AuthenticateUser())
-                {
-                    _IsAuthenticatedAsUser = true;
-                }
-            }
-
-            if (authComplete)
+            if (await AuthenticationComplete(true))
             {
                 Uri requestTokenUri = new Uri($"{TumblrBase}/v2/blog/{targetBlog}/posts");
 
@@ -136,16 +118,7 @@ namespace Tumblr.Client
         /// <returns>Id of the updated blog post.</returns>
         public async Task<long> UpdatePost(string targetBlog, long id, JToken post)
         {
-            bool authComplete = true;
-            if (!_IsAuthenticatedAsUser)
-            {
-                if (authComplete = await _auth.AuthenticateUser())
-                {
-                    _IsAuthenticatedAsUser = true;
-                }
-            }
-
-            if (authComplete)
+            if (await AuthenticationComplete(true))
             {
                 Uri requestTokenUri = new Uri($"{TumblrBase}/v2/blog/{targetBlog}/posts/{id}");
 
@@ -177,17 +150,9 @@ namespace Tumblr.Client
         ///   <c>true</c> if the post was deleted, <c>false</c> otherwise.</returns>
         public async Task<bool> DeletePost(string targetBlog, long id)
         {
-            bool authComplete = true;
             bool result = false;
-            if (!_IsAuthenticatedAsUser)
-            {
-                if (authComplete = await _auth.AuthenticateUser())
-                {
-                    _IsAuthenticatedAsUser = true;
-                }
-            }
 
-            if (authComplete)
+            if (await AuthenticationComplete(true))
             {
                 Uri requestTokenUri = new Uri($"{TumblrBase}/v2/blog/{targetBlog}/post/delete?id={id}");
 
@@ -205,7 +170,6 @@ namespace Tumblr.Client
                 else
                 {
                     _logger.LogError($"Delete Failed {response.StatusCode}");
-
                 }
             }
             return result;
@@ -252,17 +216,8 @@ namespace Tumblr.Client
 
         private async Task<JArray> Posts(string targetBlog, string path, bool requiresUserAuth, int limit = 0)
         {
-            bool authComplete = true;
-            if (requiresUserAuth && !_IsAuthenticatedAsUser)
-            {
-                if (authComplete = await _auth.AuthenticateUser())
-                {
-                    _IsAuthenticatedAsUser = true;
-                }
-            }
-
             JArray posts = new JArray();
-            if (authComplete)
+            if (await AuthenticationComplete(requiresUserAuth))
             {
                 string apiKey = requiresUserAuth ? "?npf=true" : $"?api_key={_auth.ApiKey}&npf=true";
 
@@ -304,6 +259,18 @@ namespace Tumblr.Client
             return posts;
         }
 
+        private async Task<bool> AuthenticationComplete(bool requiresUserAuth)
+        {
+            bool authComplete = true;
+            if (requiresUserAuth && !_IsAuthenticatedAsUser)
+            {
+                if (authComplete = await _auth.AuthenticateUser())
+                {
+                    _IsAuthenticatedAsUser = true;
+                }
+            }
+            return authComplete;
+        }
         public void Dispose()
         {
         }

@@ -68,7 +68,7 @@ namespace Tumblr.Client
 
         public async Task<bool> AuthenticateUser()
         {
-            bool returnValue = false;
+            bool authenticationSucessful = false;
 
             // Reset all our state
             ResetSignatureParameters();
@@ -93,39 +93,53 @@ namespace Tumblr.Client
             req.Headers.Authorization = new AuthenticationHeaderValue("OAuth", CreateOauthHeaderContent("POST", requestTokenUri, redirectBody));
             var response = await _client.SendAsync(req);
             var reply = await response.Content.ReadAsStringAsync();
-            SignatureParameters elements = new SignatureParameters(reply);
-            Token = elements.Get("oauth_token");
-            TokenSecret = elements.Get("oauth_token_secret");
-
-
-            // Authorize URL
-            string verifier = AuthorizeInBrowser(redirectUri);
-            if (verifier != null)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                // Access Token (get the final token/secret we can use to sign API requests)
-                Uri accessTokenUri = new Uri($"{TumblrAuth.AccessKey}?oauth_verifier={verifier}");
-                _logger.LogTrace($"Auth: Request Oauth final token: {accessTokenUri}");
-                req = new HttpRequestMessage(HttpMethod.Post, accessTokenUri);
-                req.Headers.Authorization = new AuthenticationHeaderValue("OAuth", CreateOauthHeader(req));
-                response = await _client.SendAsync(req);
-                reply = await response.Content.ReadAsStringAsync();
-                if (response.StatusCode == HttpStatusCode.OK)
+                SignatureParameters elements = new SignatureParameters(reply);
+                Token = elements.Get("oauth_token");
+                TokenSecret = elements.Get("oauth_token_secret");
+
+                // Authorize URL
+                string verifier = AuthorizeInBrowser(redirectUri);
+                if (verifier != null)
                 {
-                    _logger.LogInformation($"Auth: Authentication Succeeded");
-                    elements = new SignatureParameters(reply);
-                    Token = elements.Get("oauth_token");
-                    TokenSecret = elements.Get("oauth_token_secret");
-                    returnValue = true;
+                    // Access Token (get the final token/secret we can use to sign API requests)
+                    Uri accessTokenUri = new Uri($"{TumblrAuth.AccessKey}?oauth_verifier={verifier}");
+                    _logger.LogTrace($"Auth: Request Oauth final token: {accessTokenUri}");
+                    req = new HttpRequestMessage(HttpMethod.Post, accessTokenUri);
+                    req.Headers.Authorization = new AuthenticationHeaderValue("OAuth", CreateOauthHeader(req));
+                    response = await _client.SendAsync(req);
+                    reply = await response.Content.ReadAsStringAsync();
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        _logger.LogInformation($"Auth: Authentication Succeeded");
+                        elements = new SignatureParameters(reply);
+                        Token = elements.Get("oauth_token");
+                        TokenSecret = elements.Get("oauth_token_secret");
+                        authenticationSucessful = true;
+                    }
+                    else
+                    {
+                        _logger.LogCritical($"Auth: Authentication Failed (final token): {response.StatusCode}: {reply}");
+                    }
                 }
                 else
                 {
-                    _logger.LogCritical($"Auth: Authentication Failed: {response.StatusCode}: {reply}");
-                    Token = null;
-                    TokenSecret = null;
-                    _signatureParameters.Clear();
+                    _logger.LogCritical($"Auth: Authentication Failed (user declined)");
                 }
             }
-            return returnValue;
+            else
+            {
+                _logger.LogCritical($"Auth: Authentication Failed (initial token): {response.StatusCode}: {reply}");
+            }
+            if(!authenticationSucessful)
+            {
+                // Reset all our state
+                Token = null;
+                TokenSecret = null;
+                _signatureParameters.Clear();
+            }
+            return authenticationSucessful;
         }
 
         private void ResetSignatureParameters()
@@ -273,7 +287,9 @@ namespace Tumblr.Client
 
         public string Get(string key)
         {
-            return _parameters[key];
+            string value = null;
+            _parameters.TryGetValue(key, out value);
+            return value;
         }
 
         public void Set(string name, string value)
